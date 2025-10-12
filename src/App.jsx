@@ -1,16 +1,9 @@
-import Displayer from "./components/calculator/displayer";
-import Operators from "./components/calculator/operators";
-import Numbers from "./components/calculator/numbers";
+import Displayer from './components/calculator/Displayer';
+import Operators from './components/calculator/Operators';
+import Numbers from './components/calculator/Numbers';
 import './App.styles.scss';
-import { useEffect, useState } from 'react';
-// import useKey from "./hooks/useKey";
-
-const initialState = {
-	x: 0,
-	y: null,
-	operator: null,
-	result: null,
-};
+import { useEffect, useReducer, useState } from 'react';
+import Main from './components/Main';
 
 const infos = [
 	{
@@ -30,111 +23,123 @@ const infos = [
 	},
 ];
 
-export default function App() {
-	const [calc, setCalc] = useState(initialState);
-	const [x, setX] = useState(null);
-	const [y, setY] = useState(null);
-	const [result, setResult] = useState(null);
-	const [operator, setOperator] = useState(null);
-	const [temporaryOperator, setTemporaryOperator] = useState(null);
-	const [displayer, setDisplayer] = useState(0);
-	const [point, setPoint] = useState(1);
+const initialState = {
+	x: 0,
+	y: null,
+	operator: null,
+	result: null,
+	displayer: 0,
+	nextOperator: null,
+	operationList: [],
+};
 
-	const [operationList, setOperationList] = useState([]);
+function reducer(state, action) {
+	switch (action.type) {
+		case 'setDisplayer':
+			return {
+				...state,
+				displayer:
+					state.operationList.length !== 0
+						? `${
+								state.operationList.at(state.operationList.length - 1).result
+						  } ${state.operator} `
+						: state.displayer + action.payload,
+			};
+		case 'setNumber': {
+			return {
+				...state,
+				x:
+					state.operator === null
+						? state.displayer !== 0
+							? `${state.displayer}${action.payload}`
+							: state.displayer + action.payload
+						: state.x,
+				y:
+					state.x !== null && state.operator !== null
+						? state.y !== null
+							? `${state.y}${action.payload}`
+							: action.payload
+						: null,
+				displayer:
+					state.displayer !== 0
+						? `${state.displayer}${action.payload}`
+						: state.displayer + action.payload,
+			};
+		}
+		case 'setOperator':
+			return {
+				...state,
+				operator: state.operator !== null ? state.operator : action.payload,
+				nextOperator: state.operator !== null ? action.payload : null,
+				displayer: `${state.displayer} ${action.payload} `,
+			};
+
+		case 'calculate':
+			return {
+				...state,
+				result: calculate(state.x, state.y, state.operator),
+			};
+
+		case 'operationList':
+			// console.log('hi');
+			return {
+				...state,
+				operationList: [
+					...state.operationList,
+					{
+						x: Number(state.x),
+						y: Number(state.y),
+						operator: state.operator,
+						result: state.result,
+					},
+				],
+			};
+
+		case 'setNext':
+			return {
+				...state,
+				x: state.operationList.at(state.operationList.length - 1).result,
+				operator: state.nextOperator,
+				nextOperator: null,
+			};
+
+		case 'reset':
+			return {
+				...state,
+				x: 0,
+				y: null,
+				operator: null,
+				result: null,
+				displayer: 0,
+			};
+
+		default:
+			throw new Error('Unknown action');
+	}
+}
+
+function calculate(x, y, operator) {
+	// console.log(x, y, operator);
+	switch (operator) {
+		case '-':
+			return Number(x) - Number(y);
+		case '+':
+			return Number(x) + Number(y);
+		case '*':
+			return Number(x) * Number(y);
+		case '/':
+			return Number(x) / Number(y);
+		default:
+			throw new Error('unknown action');
+	}
+}
+
+export default function App() {
+	const [state, dispatch] = useReducer(reducer, initialState);
+
+	const { displayer, result, nextOperator } = state;
 
 	const [tab, setTab] = useState(1);
-
-	// useEffect(function() {
-	//   document.body.style.background = 'blue';
-	// }, [])
-
-	function handleNumbers(e) {
-		const val = e.target.textContent;
-
-		switch (val) {
-			case '0':
-				if (displayer !== '0' || displayer !== 0) setDisplayer(x => (x += val));
-				break;
-			case 'c':
-				setDisplayer(0);
-				break;
-			case '.':
-				if (
-					point > 2 ||
-					(String(displayer).includes('.') && !String(displayer).includes(' '))
-				)
-					return;
-				setPoint(p => (p += 1));
-				setDisplayer(x => (x = x + val));
-				break;
-			default:
-				displayer === 0
-					? setDisplayer(x => Number(x) + Number(val))
-					: setDisplayer(x => (x += val));
-				return;
-		}
-	}
-
-	function handleOperator(e) {
-		// console.log(e.target);
-		const action = e.target === undefined ? e : e.target.textContent;
-		console.log(action);
-
-		if (action !== '=' && y === null && operator === null) {
-			setX(() => displayer);
-			setOperator(() => action);
-			setDisplayer(d => (d += ` ${action} `));
-			console.log('step 1');
-			return;
-		}
-
-		if (operator !== null && y === null) {
-			console.log(operator);
-			setResult(() => null);
-			// find the position and extract second number from displayer
-			let index = displayer.indexOf(operator);
-			let num = displayer.slice(index + 1, displayer.length);
-			// set second number to Y
-			setY(() => Number(num));
-			// set next operation action
-			setTemporaryOperator(() => action);
-			console.log('step 2');
-		}
-	}
-
-	function calculate() {
-		let op = operator;
-		let res;
-
-		switch (op) {
-			case '-':
-				res = Number(x) - Number(y);
-				// console.log(res);
-				break;
-			case '+':
-				res = Number(x) + Number(y);
-				break;
-			case '/':
-				res = Number(x) / Number(y);
-				break;
-			case '*':
-				res = Number(x) * Number(y);
-				break;
-			case '=':
-				res = result === null ? displayer : Number(result);
-				break;
-			default:
-				return res;
-		}
-
-		console.log(res);
-
-		setResult(res);
-		setPoint(0);
-		setCalc(calc => ({ ...calc, x, y, result: res, operator }));
-		setDisplayer(() => res);
-		console.log('step 3');
-	}
 
 	function handleTab(id) {
 		setTab(id);
@@ -142,40 +147,25 @@ export default function App() {
 
 	useEffect(
 		function () {
-			if (x !== null && y !== null && operator !== null) {
-				calculate();
-				setY(() => null);
-				setOperator(() => null);
+			if (nextOperator !== null && result == null) {
+				dispatch({ type: 'calculate' });
+				dispatch({ type: 'operationList' });
+				dispatch({ type: 'reset' });
+				dispatch({ type: 'setNext' });
+				dispatch({ type: 'setDisplayer' });
 			}
-
-			if (calc.result !== null) {
-				console.log(calc);
-				setOperationList(lists => [...lists, calc]);
-				setX(() => result);
-				setCalc(calc => ({ ...calc, ...initialState }));
-				handleOperator(temporaryOperator);
-
-				console.log('step 4');
-			}
-			// handleOperator(operator);
-			console.log(operationList);
-			// return () => {}
 		},
-		[y, result]
+		[nextOperator, result]
 	);
-
-	// useKey('Escape');
 
 	return (
 		<>
 			<div id='calculator'>
-				<header>
-					<Displayer display={displayer} />
-				</header>
-				<main>
-					<Numbers onHandler={handleNumbers} />
-					<Operators onHandler={handleOperator} />
-				</main>
+				<Displayer displayer={displayer} />
+				<Main>
+					<Numbers dispatch={dispatch} />
+					<Operators dispatch={dispatch} />
+				</Main>
 			</div>
 
 			<div id='accordion'>

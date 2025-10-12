@@ -1,11 +1,10 @@
 
 
-function Displayer({ display }) {
-
-    
+function Displayer({ displayer }) {
+    console.log(displayer);
 
     return (
-       <div>{display}</div>
+       <header>{ displayer }</header>
     )
 }
 
