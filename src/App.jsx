@@ -2,26 +2,8 @@ import Displayer from './components/calculator/Displayer';
 import Operators from './components/calculator/Operators';
 import Numbers from './components/calculator/Numbers';
 import './App.styles.scss';
-import { useEffect, useReducer, useState } from 'react';
+import { useEffect, useReducer } from 'react';
 import Main from './components/Main';
-
-const infos = [
-	{
-		id: 1,
-		title: 'menu 1',
-		description: 'Combo 1. continue reading...',
-	},
-	{
-		id: 2,
-		title: 'menu 2',
-		description: 'Combo 2',
-	},
-	{
-		id: 3,
-		title: 'menu 3',
-		description: 'Combo 3',
-	},
-];
 
 const initialState = {
 	x: 0,
@@ -181,12 +163,6 @@ export default function App() {
 
 	const { displayer, result, nextOperator, y } = state;
 
-	const [tab, setTab] = useState(1);
-
-	function handleTab(id) {
-		setTab(id);
-	}
-
 	useEffect(
 		function () {
 			if (nextOperator !== null && result === null && y !== null) {
@@ -208,25 +184,6 @@ export default function App() {
 					<Numbers dispatch={dispatch} />
 					<Operators dispatch={dispatch} />
 				</Main>
-			</div>
-
-			<div id='accordion'>
-				<ul id='tabs'>
-					{infos.map(el => (
-						<li
-							key={el.id}
-							className={el.id === tab ? 'active' : ''}
-							onClick={() => handleTab(el.id)}
-						>
-							{el.title}
-						</li>
-					))}
-				</ul>
-				<div id='tabs-content'>
-					{infos.map(
-						el => el.id === tab && <p key={el.id}>{el.description}</p>
-					)}
-				</div>
 			</div>
 		</>
 	);
