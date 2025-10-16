@@ -1,6 +1,6 @@
+import styles from './numbers.module.css';
 
-
-function Numbers({ dispatch }) {
+function NumbersComp({ dispatch }) {
 	const numbers = Array.from({ length: 9 }, (_, i) => i + 1);
 
 	function handleAction(e) {
@@ -10,7 +10,7 @@ function Numbers({ dispatch }) {
 	}
 
 	return (
-		<ul id='numbers'>
+		<ul className={styles.numbers}>
 			{numbers
 				.sort((a, b) => b - a)
 				.map(n => (
@@ -34,4 +34,4 @@ function Numbers({ dispatch }) {
 	);
 }
 
-export default Numbers
+export default NumbersComp;

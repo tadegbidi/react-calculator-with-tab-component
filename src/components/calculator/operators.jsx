@@ -1,4 +1,4 @@
-
+import styles from './Operators.module.css';
 
 function Operators({ dispatch }) {
 	function handleAction(e) {
@@ -9,12 +9,12 @@ function Operators({ dispatch }) {
 	}
 
 		return (
-			<ul id='operators'>
+			<ul className={styles.operators}>
 				<li onClick={e => handleAction(e)}>*</li>
 				<li onClick={e => handleAction(e)}>/</li>
 				<li onClick={e => handleAction(e)}>-</li>
 				<li
-					className='tall'
+					className={styles.tall}
 					onClick={() => {
 						dispatch({ type: 'calculate' });
 						dispatch({ type: 'operationList' });

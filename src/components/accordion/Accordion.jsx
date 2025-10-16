@@ -1,5 +1,5 @@
 import { useState } from "react";
-
+import styles from './accordion.module.css';
 
 const infos = [
 	{
@@ -26,8 +26,8 @@ function Accordion() {
 		setTab(id);
 	}
     return (
-        <div id='accordion'>
-				<ul id='tabs'>
+			<div className={styles.accordion}>
+				<ul className={styles.tabs}>
 					{infos.map(el => (
 						<li
 							key={el.id}
@@ -38,13 +38,13 @@ function Accordion() {
 						</li>
 					))}
 				</ul>
-				<div id='tabs-content'>
+				<div className={styles.tabsContent}>
 					{infos.map(
 						el => el.id === tab && <p key={el.id}>{el.description}</p>
 					)}
 				</div>
 			</div>
-    )
+		);
 }
 
 export default Accordion
