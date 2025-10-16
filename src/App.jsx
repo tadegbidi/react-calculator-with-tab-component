@@ -39,11 +39,11 @@ function reducer(state, action) {
 			return {
 				...state,
 				displayer:
-					state.operationList.length !== 0
+					state.operationList.length !== 0 && state.operator !== null
 						? `${
 								state.operationList.at(state.operationList.length - 1).result
 						  } ${state.operator} `
-						: state.displayer + action.payload,
+						: state.x,
 			};
 		case 'setNumber': {
 			return {
@@ -51,33 +51,51 @@ function reducer(state, action) {
 				x:
 					state.operator === null
 						? state.displayer !== 0
-							? `${state.displayer}${action.payload}`
-							: state.displayer + action.payload
+							? `${state.displayer}${getNumbers(
+									state.displayer,
+									action.payload
+							  )}`
+							: state.displayer + getNumbers(state.displayer, action.payload)
 						: state.x,
 				y:
 					state.x !== null && state.operator !== null
 						? state.y !== null
-							? `${state.y}${action.payload}`
-							: action.payload
+							? `${state.y}${getNumbers(state.displayer, action.payload)}`
+							: getNumbers(state.displayer, action.payload)
 						: null,
 				displayer:
 					state.displayer !== 0
-						? `${state.displayer}${action.payload}`
-						: state.displayer + action.payload,
+						? `${state.displayer}${getNumbers(state.displayer, action.payload)}`
+						: state.displayer + getNumbers(state.displayer, action.payload),
 			};
 		}
 		case 'setOperator':
 			return {
 				...state,
-				operator: state.operator !== null ? state.operator : action.payload,
-				nextOperator: state.operator !== null ? action.payload : null,
-				displayer: `${state.displayer} ${action.payload} `,
+				operator: action.payload !== '=' ? action.payload : null,
+				nextOperator:
+					state.operator !== null && state.y !== null ? action.payload : null,
+				displayer:
+					state.displayer !== null &&
+					action.payload !== '=' &&
+					!String(state.displayer).includes(' ')
+						? `${state.displayer} ${action.payload} `
+						: state.displayer,
 			};
 
 		case 'calculate':
 			return {
 				...state,
-				result: calculate(state.x, state.y, state.operator),
+				result:
+					state.y !== null
+						? calculate(state.x, state.y, state.operator)
+						: state.result,
+			};
+
+		case 'getResult':
+			return {
+				...state,
+				displayer: state.result !== null ? state.result : state.displayer,
 			};
 
 		case 'operationList':
@@ -98,8 +116,11 @@ function reducer(state, action) {
 		case 'setNext':
 			return {
 				...state,
-				x: state.operationList.at(state.operationList.length - 1).result,
-				operator: state.nextOperator,
+				x:
+					state.operationList.length !== 0
+						? state.operationList.at(state.operationList.length - 1).result
+						: state.result,
+				operator: state.nextOperator === '=' ? null : state.nextOperator,
 				nextOperator: null,
 			};
 
@@ -111,6 +132,7 @@ function reducer(state, action) {
 				operator: null,
 				result: null,
 				displayer: 0,
+				nextOperator: null,
 			};
 
 		default:
@@ -119,11 +141,13 @@ function reducer(state, action) {
 }
 
 function calculate(x, y, operator) {
-	// console.log(x, y, operator);
+	if (y === null) return;
+
 	switch (operator) {
 		case '-':
 			return Number(x) - Number(y);
 		case '+':
+			console.log(x, y);
 			return Number(x) + Number(y);
 		case '*':
 			return Number(x) * Number(y);
@@ -134,10 +158,28 @@ function calculate(x, y, operator) {
 	}
 }
 
+function getNumbers(displayer, n) {
+	if (
+		n === '.' &&
+		!String(displayer).includes(' ') &&
+		String(displayer).indexOf(n) === 1
+	)
+		return '';
+
+	if (
+		n === '.' &&
+		String(displayer).includes(' ') &&
+		String(displayer).lastIndexOf(n) > 2
+	)
+		return '';
+
+	return n;
+}
+
 export default function App() {
 	const [state, dispatch] = useReducer(reducer, initialState);
 
-	const { displayer, result, nextOperator } = state;
+	const { displayer, result, nextOperator, y } = state;
 
 	const [tab, setTab] = useState(1);
 
@@ -147,7 +189,7 @@ export default function App() {
 
 	useEffect(
 		function () {
-			if (nextOperator !== null && result == null) {
+			if (nextOperator !== null && result === null && y !== null) {
 				dispatch({ type: 'calculate' });
 				dispatch({ type: 'operationList' });
 				dispatch({ type: 'reset' });
@@ -155,7 +197,7 @@ export default function App() {
 				dispatch({ type: 'setDisplayer' });
 			}
 		},
-		[nextOperator, result]
+		[nextOperator, result, y]
 	);
 
 	return (
