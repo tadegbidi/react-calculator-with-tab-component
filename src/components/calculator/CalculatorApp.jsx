@@ -105,7 +105,8 @@ function reducer(state, action) {
 					state.operationList.length !== 0
 						? state.operationList.at(state.operationList.length - 1).result
 						: state.result,
-				operator: state.nextOperator === '=' ? null : state.nextOperator,
+				operator:
+					state.nextOperator !== null ? state.nextOperator : state.operator,
 				nextOperator: null,
 			};
 
@@ -117,6 +118,15 @@ function reducer(state, action) {
 				operator: null,
 				result: null,
 				displayer: 0,
+				nextOperator: null,
+			};
+
+		case 'resetNextOp':
+			return {
+				...state,
+				y: null,
+				result: null,
+				displayer: state.x,
 				nextOperator: null,
 			};
 
@@ -170,7 +180,7 @@ export default function CalculatorApp() {
 			if (nextOperator !== null && result === null && y !== null) {
 				dispatch({ type: 'calculate' });
 				dispatch({ type: 'operationList' });
-				dispatch({ type: 'reset' });
+				dispatch({ type: 'resetNextOp' });
 				dispatch({ type: 'setNext' });
 				dispatch({ type: 'setDisplayer' });
 			}
